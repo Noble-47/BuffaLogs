@@ -4,9 +4,7 @@ from typing import Callable, Type
 import typer
 from buffacli.globals import vprint
 from requests import exceptions
-from rich.console import Console
 from rich.panel import Panel
-from typer import Typer
 
 ExceptionType = Type[Exception]
 ExceptionHandlingCallback = Callable[[Exception], int]

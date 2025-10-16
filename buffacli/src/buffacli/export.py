@@ -22,7 +22,7 @@ class JSONExporter(BaseExporter):
 
     def export(self, model: DataModel):
         json_content = model.json
-        vprint("info", "Exporting  data to {self.filename}...", end="")
+        vprint("info", f"Exporting  data to {self.filename}...")
         with open(self.filename, "w") as f:
             json.dump(json_content, f, indent=4)
         vprint("debug", f"Row Count: {1 if isinstance(json_content, dict) else len(json_content)}")

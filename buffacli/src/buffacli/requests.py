@@ -1,4 +1,3 @@
-import sys
 from datetime import datetime
 
 import requests
@@ -10,13 +9,15 @@ root_url = get_buffalogs_url()
 alert_types_api = root_url / "api/alert_types"
 ingestion_api = root_url / "api/ingestion"
 alerters_api = root_url / "api/alerters"
-alerts_api = root_url / "alerts_api"  # "api/alerts"
+alerts_api = root_url / "api/alerts"
 login_api = root_url / "api/logins"
 
 
 @request_exception_handler
 def send_request(url, *args, **kwargs):
     vprint("info", f"Requesting: {url}...")
+    # set default timeout for requests
+    kwargs.setdefault("timeout", 5)
     req = requests.get(url, *args, **kwargs)
     vprint("debug", f"Request Headers: {req.request.headers}")
     vprint("info", f"Response Status Code: {req.status_code}")
@@ -55,6 +56,8 @@ def get_alerter_config(alerter: str):
 
 def get_alerts(
     *,
+    offset: int = None,
+    limit: int = None,
     start_date: datetime = None,
     end_date: datetime = None,
     name: str = None,
@@ -87,6 +90,7 @@ def get_alerts(
         user_agent=user_agent,
         login_start_time=login_start_time,
         login_end_time=login_end_time,
+        limit=limit,
     )
 
     return send_request(alerts_api, params=query).json()
@@ -94,6 +98,7 @@ def get_alerts(
 
 def get_logins(
     *,
+    offset: int = None,
     username: str = None,
     ip: str = None,
     country: str = None,
@@ -101,7 +106,17 @@ def get_logins(
     login_start_time: datetime = None,
     login_end_time: datetime = None,
     index: str = None,
+    limit: int = None,
 ):
-    query = dict(user=username, ip=ip, country=country, user_agent=user_agent, login_start_time=login_start_time, login_end_time=login_end_time, index=index)
+    query = dict(
+        user=username,
+        ip=ip,
+        country=country,
+        user_agent=user_agent,
+        login_start_time=login_start_time,
+        login_end_time=login_end_time,
+        index=index,
+        limit=limit,
+    )
 
     return send_request(login_api, params=query).json()
