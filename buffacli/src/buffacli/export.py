@@ -1,8 +1,8 @@
 import csv
 import json
 from abc import ABC, abstractmethod
-from enum import Enum
 from pathlib import Path
+from typing import Optional
 
 from buffacli.globals import vprint
 from buffacli.models import DataModel
@@ -52,7 +52,7 @@ class CSVExporter(BaseExporter):
 options = {".csv": CSVExporter, ".json": JSONExporter}
 
 
-def get_exporter(output_file: Path):
+def get_exporter(output_file: Path) -> Optional[BaseExporter]:
     export_class = options.get(output_file.suffix.lower())
     if export_class:
         return export_class(output_file)

@@ -4,31 +4,11 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
-from buffacli import export, requests
-from buffacli.exceptions import InvalidArgsException
+from buffacli import requests
 from buffacli.formatters import FormatOptions
-from buffacli.models.inputs import AlertQueryOptions, GenericQueryOptions, LoginQueryOptions
-from buffacli.models.response import AlertQuery, LoginQuery
+from buffacli.models import AlertQuery, LoginQuery
+from buffacli.options import AlertQueryOptions, LoginQueryOptions, QueryOptions
 from buffacli.render import RenderOptions, make_renderable
-
-
-@dataclass
-class QueryOptions:
-    limit: Optional[int] = None
-    formatter: FormatOptions = "table"
-    omit: Optional[str] = None
-    mappings: Optional[str] = None
-    since: Optional[str] = None
-
-    def __post_init__(self):
-        if self.mappings:
-            self.mappings = dict(mapstr.split(":") for mapstr in self.mappings.split())
-        if self.since:
-            self.generate_start_and_end_date()
-
-    def generate_start_and_end_date(self):
-        pass
-
 
 app = typer.Typer(help="Query users and alerts record")
 
@@ -38,21 +18,21 @@ def callback(
     ctx: typer.Context,
     formatter: Annotated[FormatOptions, typer.Option("-f", "--format")] = "table",
     limit: Annotated[int, typer.Option(help="Prints only the first n items")] = None,
-    mode: Annotated[RenderOptions, typer.Option(help="Select how long output are displayed")] = "",
     since: Annotated[str, typer.Option(help="Query the most recent from the given timestamp")] = "",
+    mode: Annotated[RenderOptions, typer.Option(help="Select how long output are displayed")] = "",
     page_size: Annotated[int, typer.Option(help="Number of items in a page")] = None,
     output_file: Annotated[Path, typer.Option("-o", "--output", help="Output file for query export")] = None,
     omit: Annotated[list[str], typer.Option(help="Omit fields from query results")] = None,
     mappings: Annotated[str, typer.Option(help="Alias name for fields. Follows the format fieldname:alias")] = None,
 ):
-    exporter = None
-    if output_file:
-        exporter = export.get_exporter(output_file)
     ctx.obj = QueryOptions(
         limit=limit,
-        formatter=make_renderable(formatter, mode=mode, page_size=page_size, exporter=exporter),
+        formatter=formatter,  # make_renderable(formatter, mode=mode, page_size=page_size, exporter=exporter),
         omit=omit,
         mappings=mappings,
+        mode=mode,
+        page_size=page_size,
+        output_file=output_file,
         since=since,
     )
 
@@ -77,12 +57,8 @@ def alerts(
     user_agent: Annotated[str, typer.Option(help="Filter by login agent.")] = None,
 ):
 
-    if ctx.obj.since:
-        if start_date or end_date:
-            raise InvalidArgsException("Cannot specify start_date, end_date with since")
-        start_date, end_date = ctx.obj.generate_start_and_end_date()
-
-    data = requests.get_alerts(
+    # Performs validations of command option
+    query_options = AlertQueryOptions(
         start_date=start_date,
         end_date=end_date,
         name=name,
@@ -98,7 +74,9 @@ def alerts(
         login_end_time=login_end_time,
         user_agent=user_agent,
         limit=ctx.obj.limit,
+        since=ctx.obj.since,
     )
+    data = requests.get_alerts(query_options.model_dump())
     formatter = ctx.obj.formatter
     alert_model = AlertQuery(data, omit=ctx.obj.omit, fields=fields, mappings=ctx.obj.mappings)
     formatter.print(alert_model, title="Alerts")
@@ -117,7 +95,7 @@ def logins(
     user_agent: Annotated[str, typer.Option(help="Filter by login agent.")] = None,
 ):
 
-    data = requests.get_logins(
+    query_options = LoginQueryOptions(
         username=username,
         ip=ip,
         country=country,
@@ -126,7 +104,9 @@ def logins(
         user_agent=user_agent,
         index=index,
         limit=ctx.obj.limit,
+        since=ctx.obj.since,
     )
+    data = requests.get_logins(query_options.model_dump())
     formatter = ctx.obj.formatter
-    login = LoginQuery(data[: ctx.obj.limit], omit=ctx.obj.omit, fields=fields, mappings=ctx.obj.mappings)
+    login = LoginQuery(data, omit=ctx.obj.omit, fields=fields, mappings=ctx.obj.mappings)
     formatter.print(login, title="Logins")

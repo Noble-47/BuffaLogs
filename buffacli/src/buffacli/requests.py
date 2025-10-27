@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any, Dict
 
 import requests
 from buffacli.config import get_buffalogs_url
@@ -54,69 +55,9 @@ def get_alerter_config(alerter: str):
     return send_request(alerters_api / f"{alerter}").json()
 
 
-def get_alerts(
-    *,
-    offset: int = None,
-    limit: int = None,
-    start_date: datetime = None,
-    end_date: datetime = None,
-    name: str = None,
-    username: str = None,
-    ip: str = None,
-    country: str = None,
-    is_vip: bool = None,
-    notified: bool = None,
-    filtered: bool = None,
-    min_risk_score: int = None,
-    max_risk_score: int = None,
-    risk_score: int = None,
-    user_agent: str = None,
-    login_start_time: datetime = None,
-    login_end_time: datetime = None,
-):
-    query = dict(
-        start_date=start_date,
-        end_date=end_date,
-        name=name,
-        user=username,
-        ip=ip,
-        country=country,
-        is_vip=is_vip,
-        notified=notified,
-        filtered=filtered,
-        min_risk_score=min_risk_score,
-        max_risk_score=max_risk_score,
-        risk_score=risk_score,
-        user_agent=user_agent,
-        login_start_time=login_start_time,
-        login_end_time=login_end_time,
-        limit=limit,
-    )
-
+def get_alerts(query: Dict[str, Any]):
     return send_request(alerts_api, params=query).json()
 
 
-def get_logins(
-    *,
-    offset: int = None,
-    username: str = None,
-    ip: str = None,
-    country: str = None,
-    user_agent: str = None,
-    login_start_time: datetime = None,
-    login_end_time: datetime = None,
-    index: str = None,
-    limit: int = None,
-):
-    query = dict(
-        user=username,
-        ip=ip,
-        country=country,
-        user_agent=user_agent,
-        login_start_time=login_start_time,
-        login_end_time=login_end_time,
-        index=index,
-        limit=limit,
-    )
-
+def get_logins(query: Dict[str, Any]):
     return send_request(login_api, params=query).json()
