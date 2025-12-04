@@ -3,12 +3,13 @@ from typing import Annotated
 
 import typer
 from buffacli import config
-from buffacli.commands import query, show
+from buffacli.commands import profiler, query, show
 from buffacli.globals import VLevel, set_verbose_level
 
 app = typer.Typer()
 
 app.add_typer(show.app, name="show")
+app.add_typer(profiler.app, name="profiler")
 app.add_typer(query.app, name="query")
 
 

@@ -12,6 +12,7 @@ ingestion_api = root_url / "api/ingestion"
 alerters_api = root_url / "api/alerters"
 alerts_api = root_url / "api/alerts"
 login_api = root_url / "api/logins"
+users_api = root_url / "api/users"
 
 
 @request_exception_handler
@@ -61,3 +62,7 @@ def get_alerts(query: Dict[str, Any]):
 
 def get_logins(query: Dict[str, Any]):
     return send_request(login_api, params=query).json()
+
+
+def get_users(query: Dict[str, Any]):
+    return send_request(users_api, params=query).json()
