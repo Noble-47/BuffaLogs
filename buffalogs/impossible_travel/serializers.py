@@ -5,7 +5,14 @@ from django.db import models
 from django.db.models import Max
 from impossible_travel.models import Alert, Login, User, UsersIP
 
-InstanceType = Union[models.Model, List[models.Model]]
+InstanceType = Union[
+    list,
+    tuple,
+    models.Model,
+    List[models.Model],
+    models.QuerySet,
+    models.manager.BaseManager
+]
 
 
 class Serializer:
@@ -61,7 +68,9 @@ class LoginSerializer(QSerializer):
         }
 
 
-class UserSerializer(Serializer):
+class UserSerializer(QSerializer):
+
+    Model = User
 
     def to_representation(self, item):
         return {

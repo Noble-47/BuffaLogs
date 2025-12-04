@@ -24,7 +24,9 @@ def validate_string_or_regex(value):
         try:
             re.compile(item)
         except re.error:
-            raise ValidationError(f"The single element '{item}' in the '{value}' list field is not a valid regex pattern")
+            raise ValidationError(
+                f"The single element '{item}' in the '{value}' list field is not a valid regex pattern"
+            )
 
 
 def validate_ips_or_network(value):
@@ -64,7 +66,9 @@ def validate_countries_names(value):
         raise ValidationError(_("Value must be a list."))
 
     # Flatten the input if it's a list of lists (example: [['Italy', 'France']])
-    flattened = [country for pair in value for country in pair] if all(isinstance(item, list) for item in value) else value
+    flattened = (
+        [country for pair in value for country in pair] if all(isinstance(item, list) for item in value) else value
+    )
 
     invalid_entries = [country for country in flattened if country not in VALID_COUNTRY_NAMES]
 
@@ -109,7 +113,9 @@ def validate_datetime_str(value: Optional[str] = None):
 
     dt_obj = parse_datetime(value)
     if dt_obj is None:
-        raise ValidationError(f"{value} is not a valid datetime format. Please use ISO 8601 format (e.g., YYYY-MM-DDTHH:MM:SSZ).")
+        raise ValidationError(
+            f"{value} is not a valid datetime format. Please use ISO 8601 format (e.g., YYYY-MM-DDTHH:MM:SSZ)."
+        )
     if is_naive(dt_obj):
         dt_obj = make_aware(dt_obj)
     return dt_obj
@@ -185,6 +191,7 @@ def validate_login_query(query_dict: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+<<<<<<< Updated upstream
 def validate_tags(value):
     """Ensure all tags are valid and unique."""
     if not isinstance(value, list):
@@ -195,3 +202,11 @@ def validate_tags(value):
         raise ValidationError(_(f"Invalid tags: {', '.join(invalid)}. Must be one of: {', '.join(valid_tags)}."))
     if len(value) != len(set(value)):
         raise ValidationError(_("Duplicate tags are not allowed."))
+||||||| Stash base
+=======
+def validate_user_request_query(query_dict: Dict[str, Any]) -> Dict[str, Any]:
+    """Validates the query dictionary of a GET request to user API"""
+    username = query_dict.get("username")
+    ignore_case = query_dict.get("ignore_case")
+    return {"username": username, "ignore_case": ignore_case}
+>>>>>>> Stashed changes

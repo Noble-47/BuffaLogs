@@ -34,7 +34,7 @@ def login_api(request):
         query = validate_login_query(request.GET)
         serialized_logins = LoginSerializer(query=query)
         return JsonResponse(
-            serialized_logins.json(),
+            serialized_logins.data,
             content_type="json",
             safe=False,
             json_dumps_params={"default": str},

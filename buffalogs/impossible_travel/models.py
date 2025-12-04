@@ -6,6 +6,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+<<<<<<< Updated upstream
 from impossible_travel.constants import AlertDetectionType, AlertFilterType, AlertTagValues, ExecutionModes, UserRiskScoreType
 from impossible_travel.validators import (
     validate_countries_names,
@@ -13,6 +14,17 @@ from impossible_travel.validators import (
     validate_ips_or_network,
     validate_string_or_regex,
     validate_tags,
+||||||| Stash base
+from impossible_travel.constants import AlertDetectionType, AlertFilterType, UserRiskScoreType
+from impossible_travel.validators import validate_countries_names, validate_country_couples_list, validate_ips_or_network, validate_string_or_regex
+=======
+from impossible_travel.constants import AlertDetectionType, AlertFilterType, UserRiskScoreType
+from impossible_travel.validators import (
+    validate_countries_names,
+    validate_country_couples_list,
+    validate_ips_or_network,
+    validate_string_or_regex,
+>>>>>>> Stashed changes
 )
 
 
@@ -29,6 +41,17 @@ class User(models.Model):
 
     def __str__(self):
         return f"User object ({self.id}) - {self.username}"
+
+    @classmethod
+    def apply_filters(cls, username: str = None, ignore_case: bool = False):
+        query = cls.objects.all()
+        if username is None:
+            return query
+        if ignore_case:
+            query = query.filter(username__iexact=username)
+        else:
+            query = query.filter(username=username)
+        return query
 
     class Meta:
         constraints = [
@@ -207,7 +230,8 @@ class Alert(models.Model):
             ),
             models.CheckConstraint(
                 # Check that each element in the Alert.filter_type is in the Enum AlertFilterType
-                check=models.Q(filter_type__contained_by=[choice[0] for choice in AlertFilterType.choices]) | models.Q(filter_type=[]),
+                check=models.Q(filter_type__contained_by=[choice[0] for choice in AlertFilterType.choices])
+                | models.Q(filter_type=[]),
                 name="valid_alert_filter_type_choices",
             ),
         ]
@@ -336,7 +360,9 @@ class Config(models.Model):
         default=get_default_ignored_ISPs,
         help_text="List of ISPs names to remove from the detection",
     )
-    ignore_mobile_logins = models.BooleanField(default=True, help_text="Flag to ignore mobile devices from the detection")
+    ignore_mobile_logins = models.BooleanField(
+        default=True, help_text="Flag to ignore mobile devices from the detection"
+    )
 
     # Detection filters - alerts
     filtered_alerts_types = ArrayField(
@@ -405,7 +431,9 @@ class Config(models.Model):
 
     def clean(self):
         if not self.pk and Config.objects.exists():
-            raise ValidationError("A Config object already exist - it is possible just to modify it, not to create a new one")
+            raise ValidationError(
+                "A Config object already exist - it is possible just to modify it, not to create a new one"
+            )
         # Config.id=1 always
         self.pk = 1
 

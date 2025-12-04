@@ -22,6 +22,11 @@ class TestViews(APITestCase):
         )
         cls.db_user = User.objects.get(username="Lorena Goldoni")
 
+        cls.login_timestamp_1 = "2023-06-19T10:01:33.358Z"
+        cls.login_timestamp_2 = "2023-06-19T10:08:33.358Z"
+        cls.login_timestamp_3 = "2023-06-20T10:01:33.358Z"
+        cls.login_timestamp_4 = "2023-06-20T10:08:33.358Z"
+
         Login.objects.bulk_create(
             [
                 Login(
@@ -29,7 +34,7 @@ class TestViews(APITestCase):
                     event_id="vfraw14gw",
                     index="cloud",
                     ip="1.2.3.4",
-                    timestamp="2023-06-19T10:01:33.358Z",
+                    timestamp=cls.login_timestamp_1,
                     latitude=40.364,
                     longitude=-79.8605,
                     country="United States",
@@ -40,7 +45,7 @@ class TestViews(APITestCase):
                     event_id="ht9DEIgBnkLiMp6r-SG-",
                     index="weblog",
                     ip="203.0.113.24",
-                    timestamp="2023-06-19T10:08:33.358Z",
+                    timestamp=cls.login_timestamp_2,
                     latitude=36.2462,
                     longitude=138.8497,
                     country="Japan",
@@ -51,7 +56,7 @@ class TestViews(APITestCase):
                     event_id="vfraw14gw",
                     index="cloud",
                     ip="1.2.3.4",
-                    timestamp="2023-06-20T10:01:33.358Z",
+                    timestamp=cls.login_timestamp_3,
                     latitude=40.364,
                     longitude=-79.8605,
                     country="United States",
@@ -62,7 +67,7 @@ class TestViews(APITestCase):
                     event_id="ht9DEIgBnkLiMp6r-SG-",
                     index="weblog",
                     ip="203.0.113.24",
-                    timestamp="2023-06-20T10:08:33.358Z",
+                    timestamp=cls.login_timestamp_4,
                     latitude=36.2462,
                     longitude=138.8497,
                     country="Japan",
@@ -170,7 +175,9 @@ class TestViews(APITestCase):
         end = datetime.now() + timedelta(minutes=1)
         start = end - timedelta(hours=3)
         dict_expected_result = {"no_risk": 1, "low": 3, "medium": 1, "high": 0}
-        response = self.client.get(f"{reverse('users_pie_chart_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+        response = self.client.get(
+            f"{reverse('users_pie_chart_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(dict_expected_result, json.loads(response.content))
 
@@ -178,7 +185,9 @@ class TestViews(APITestCase):
         start = datetime(2023, 6, 20, 10, 0)
         end = datetime(2023, 6, 20, 12, 0)
         dict_expected_result = {"Timeframe": "hour", "2023-06-20T10:00:00Z": 1, "2023-06-20T11:00:00Z": 2}
-        response = self.client.get(f"{reverse('alerts_line_chart_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+        response = self.client.get(
+            f"{reverse('alerts_line_chart_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(dict_expected_result, json.loads(response.content))
 
@@ -186,7 +195,9 @@ class TestViews(APITestCase):
         start = datetime(2023, 6, 19, 0, 0)
         end = datetime(2023, 6, 20, 23, 59, 59)
         dict_expected_result = {"Timeframe": "day", "2023-06-19": 2, "2023-06-20": 3}
-        response = self.client.get(f"{reverse('alerts_line_chart_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+        response = self.client.get(
+            f"{reverse('alerts_line_chart_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(dict_expected_result, json.loads(response.content))
 
@@ -194,7 +205,9 @@ class TestViews(APITestCase):
         start = datetime(2023, 5, 1, 0, 0)
         end = datetime(2023, 6, 30, 23, 59, 59)
         dict_expected_result = {"Timeframe": "month", "2023-05": 1, "2023-06": 5}
-        response = self.client.get(f"{reverse('alerts_line_chart_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+        response = self.client.get(
+            f"{reverse('alerts_line_chart_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(dict_expected_result, json.loads(response.content))
 
@@ -202,8 +215,13 @@ class TestViews(APITestCase):
         start = datetime(2023, 5, 1, 0, 0)
         end = datetime(2023, 6, 30, 23, 59, 59)
         num_alerts = 0
-        list_expected_result = [{"country": "jp", "lat": 36.2462, "lon": 138.8497, "alerts": 3}, {"country": "us", "lat": 40.364, "lon": -79.8605, "alerts": 3}]
-        response = self.client.get(f"{reverse('world_map_chart_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+        list_expected_result = [
+            {"country": "jp", "lat": 36.2462, "lon": 138.8497, "alerts": 3},
+            {"country": "us", "lat": 40.364, "lon": -79.8605, "alerts": 3},
+        ]
+        response = self.client.get(
+            f"{reverse('world_map_chart_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         for elem in list_expected_result:
             num_alerts += elem["alerts"]
         self.assertEqual(response.status_code, 200)
@@ -248,15 +266,69 @@ class TestViews(APITestCase):
         )
         start = creation_mock_time
         end = creation_mock_time + timedelta(minutes=10)
-        response = self.client.get(f"{reverse('list_alerts')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+        response = self.client.get(
+            f"{reverse('list_alerts')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertCountEqual(list_expected_result, response.json())
+
+    def test_login_api_get_success(self):
+        """Test the GET request to login_api returns logins within the specified time range."""
+        start = datetime(2023, 6, 19, 10, 0, 0, tzinfo=timezone.utc)
+        end = datetime(2023, 6, 19, 11, 0, 0, tzinfo=timezone.utc)  # up to 11:00 on the 19th
+
+        response = self.client.get(
+            f"{reverse('logins')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+
+        self.assertEqual(len(data), 2)
+
+        timestamps_in_response = {entry["timestamp"] for entry in data}
+        self.assertIn(self.login_timestamp_1, timestamps_in_response)
+        self.assertIn(self.login_timestamp_2, timestamps_in_response)
+        self.assertNotIn(self.login_timestamp_3, timestamps_in_response)
+
+    def test_login_api_get_no_query_params(self):
+        """Test the GET request to login_api returns all logins when no time range is provided."""
+
+        expected_total_logins = Login.objects.count()
+        response = self.client.get(reverse("logins"))
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(len(data), expected_total_logins)
+
+    def test_login_api_get_no_logins_found(self):
+        """Test the GET request to login_api returns an empty list if no logins match the time range."""
+
+        start = datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+        end = datetime(2024, 1, 2, 0, 0, 0, tzinfo=timezone.utc)
+
+        response = self.client.get(
+            f"{reverse('logins')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 0)
 
     def test_risk_score_api(self):
         end = datetime.now() + timedelta(seconds=1)
         start = end - timedelta(minutes=1)
-        dict_expected_result = {"Lorena Goldoni": "No risk", "Lorygold": "Low", "Lory": "Low", "Lor": "Low", "Loryg": "Medium"}
-        response = self.client.get(f"{reverse('risk_score_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+        dict_expected_result = {
+            "Lorena Goldoni": "No risk",
+            "Lorygold": "Low",
+            "Lory": "Low",
+            "Lor": "Low",
+            "Loryg": "Medium",
+        }
+        response = self.client.get(
+            f"{reverse('risk_score_api')}?start={start.strftime('%Y-%m-%dT%H:%M:%SZ')}&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(dict_expected_result, json.loads(response.content))
 
@@ -306,7 +378,8 @@ class TestViews(APITestCase):
         response_timestamps = data["logins"]
         for i, timestamp in enumerate(login_timestamps):
             self.assertTrue(
-                any(timestamp.isoformat() in resp_time for resp_time in response_timestamps), f"Timestamp {timestamp.isoformat()} not found in response"
+                any(timestamp.isoformat() in resp_time for resp_time in response_timestamps),
+                f"Timestamp {timestamp.isoformat()} not found in response",
             )
 
     def test_user_device_usage_api(self):
@@ -473,7 +546,9 @@ class TestViews(APITestCase):
             self.assertIn(hour, hourly_data)
             for weekday, expected_count in enumerate(expected_weekdays):
                 self.assertGreaterEqual(
-                    hourly_data[hour][weekday], expected_count, f"Expected at least {expected_count} logins for hour {hour}, weekday {weekday}"
+                    hourly_data[hour][weekday],
+                    expected_count,
+                    f"Expected at least {expected_count} logins for hour {hour}, weekday {weekday}",
                 )
 
     def test_user_geo_distribution_api(self):
@@ -525,7 +600,11 @@ class TestViews(APITestCase):
             country_code = details["code"]
             expected_count = details["count"]
             if country_code in data["countries"]:
-                self.assertGreaterEqual(data["countries"][country_code], expected_count, f"Expected at least {expected_count} logins for country {country}")
+                self.assertGreaterEqual(
+                    data["countries"][country_code],
+                    expected_count,
+                    f"Expected at least {expected_count} logins for country {country}",
+                )
 
     def test_export_alerts_csv(self):
         """Test the CSV export endpoint returns the correct headers and only intended rows."""

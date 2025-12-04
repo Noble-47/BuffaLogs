@@ -13,7 +13,7 @@ services:
         volumes:
             - buffalogs_postgres_data:/var/lib/postgresql/data
         ports:
-            - "5433:5432"
+            - "5432:5432"
         healthcheck:
             test: ["CMD", "pg_isready", "-U", "default_user", "-d", "buffalogs"]
             interval: 10s
@@ -35,7 +35,7 @@ services:
             - buffalogs_nginx_sockets:/var/run/nginx-sockets
             - buffalogs_nginx_logs:/var/log/nginx:rw
         ports:
-            - "80:80"
+            - "8080:80"
             - "8000:80"
            # - "443:443"
 

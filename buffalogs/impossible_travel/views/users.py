@@ -1,16 +1,21 @@
-import json
 from collections import defaultdict
 from datetime import timedelta
 from functools import wraps
+import json
 
-from dateutil.parser import isoparse
-from django.db.models import Count, Max
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, JsonResponse
-from django.shortcuts import get_object_or_404, render
-from django.utils import timezone
-from django.utils.dateparse import parse_datetime
-from django.utils.timezone import is_naive, make_aware
 from django.views.decorators.http import require_http_methods
+from django.utils.timezone import is_naive, make_aware
+from django.shortcuts import get_object_or_404, render
+from django.utils.dateparse import parse_datetime
+from dateutil.parser import isoparse
+from django.db.models import Count
+from django.utils import timezone
+
+from impossible_travel.models import Login, User
+from impossible_travel.views.utils import read_config
+from impossible_travel.serializers import UserSerializer
+from impossible_travel.validators import validate_user_request_query
 from impossible_travel.dashboard.charts import (
     user_device_usage_chart,
     user_geo_distribution_chart,
@@ -18,9 +23,6 @@ from impossible_travel.dashboard.charts import (
     user_login_timeline_chart,
     user_time_of_day_chart,
 )
-from impossible_travel.models import Login, User
-from impossible_travel.serializers import UserSerializer
-from impossible_travel.views.utils import read_config
 
 
 # Template Views
@@ -75,7 +77,8 @@ def users_template_view(request):
 
 
 def list_users(request):
-    serialized_users = UserSerializer(User.objects)
+    query = validate_user_request_query(request.GET)
+    serialized_users = UserSerializer(query=query)
     return JsonResponse(serialized_users.data, safe=False)
 
 
@@ -131,7 +134,11 @@ def user_device_usage_api(request, pk):
     except User.DoesNotExist:
         return HttpResponseNotFound("User not found")
 
-    devices = Login.objects.filter(user=user, timestamp__range=(start_date, end_date)).values("user_agent").annotate(count=Count("id"))
+    devices = (
+        Login.objects.filter(user=user, timestamp__range=(start_date, end_date))
+        .values("user_agent")
+        .annotate(count=Count("id"))
+    )
     device_counts = {d["user_agent"]: d["count"] for d in devices}
 
     return JsonResponse({"devices": device_counts})
